@@ -1,0 +1,20 @@
+# new_frontend/Dockerfile.frontend.dev
+FROM node:18
+
+WORKDIR /app
+
+# Sólo copiamos package.json y lockfile
+COPY package.json package-lock.json ./
+
+# Instalamos dependencias en Linux
+RUN npm install
+RUN npm install jwt-decode
+
+# Copiamos el resto del código
+COPY . .
+
+# Exponemos el puerto de Vite
+EXPOSE 5173
+
+# Levantamos Vite en modo dev atendiendo en 0.0.0.0 para que sea accesible fuera del contenedor
+CMD ["npm", "run", "dev", "--", "--host"]
