@@ -10,7 +10,7 @@ const ListadoPostulantes = () => {
   const [postulantes, setPostulantes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const itemsPorPagina = 10;
+  const itemsPorPagina = 15;
   const [total, setTotal] = useState(0);
   const [cargando, setCargando] = useState(true);
 
@@ -30,10 +30,9 @@ const ListadoPostulantes = () => {
           search: busqueda || undefined,
         },
       });
-      setPostulantes(response.data);
-      setTotal(response.data.length < itemsPorPagina && paginaActual === 1
-        ? response.data.length
-        : total); // total fijo si no hay más
+
+      setPostulantes(response.data.items || []);
+      setTotal(response.data.total || 0);
     } catch (error) {
       console.error("Error al obtener postulantes:", error);
     } finally {

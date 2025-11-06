@@ -13,9 +13,9 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     const res = await loginUser({ username, password });
-    if (res && res.access_token) {
-      login(res.access_token);  // ✅ actualiza el contexto
-      navigate("/dashboard", { replace: true }); // ✅ redirecciona
+    if (res && res.access_token && res.refresh_token) {
+      login(res.access_token, res.refresh_token); 
+      navigate("/dashboard", { replace: true }); 
     } else {
       setError("Usuario o contraseña inválidos");
     }

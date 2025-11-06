@@ -1,36 +1,43 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode"; 
+import { injectStore } from "../api/axios";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [token, setToken] = useState(localStorage.getItem("token"));
-    const [user, setUser] = useState(null); // ✅ Estado para el usuario
+    const [refreshToken, setRefreshToken] = useState(localStorage.getItem("refresh_token"));
+    const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
+        injectStore({ logout, refreshToken, setToken }); // ⬅ inyecta en axios
+
         if (token) {
-            try {
-                const decoded = jwtDecode(token);
-                setUser(decoded); // ✅ Guardar datos decodificados
-            } catch (e) {
-                console.error("Token inválido", e);
-                logout();
-            }
+        try {
+            const decoded = jwtDecode(token);
+            setUser(decoded);
+        } catch (e) {
+            logout();
+        }
         } else {
-            setUser(null);
+        setUser(null);
         }
     }, [token]);
 
-    const login = (newToken) => {
+    const login = (newToken, newRefreshToken) => {
         localStorage.setItem("token", newToken);
+        localStorage.setItem("refresh_token", newRefreshToken);
         setToken(newToken);
+        setRefreshToken(newRefreshToken);
     };
 
     const logout = () => {
         localStorage.removeItem("token");
+        localStorage.removeItem("refresh_token");
         setToken(null);
+        setRefreshToken(null);
         setUser(null);
         navigate("/login");
     };
@@ -39,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={{ token, login, logout, isAuthenticated, user }}>
-            {children}
+        {children}
         </AuthContext.Provider>
     );
 };

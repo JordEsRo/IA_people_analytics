@@ -19,12 +19,13 @@ const HistorialEvaluaciones = () => {
     fecha_desde: "",    
     fecha_hasta: "",    
     min_match: "",      
-    max_match: "",      
+    max_match: "",
+    proceso: "",      
   });
   const [detalleSeleccionado, setDetalleSeleccionado] = useState(null);
   const [cargando, setCargando] = useState(true);
 
-  const itemsPorPagina = 10;
+  const itemsPorPagina = 25;
 
   useEffect(() => {
     const fetchPuestos = async () => {
@@ -98,7 +99,7 @@ const HistorialEvaluaciones = () => {
     saveAs(blob, `historial_evaluaciones.xlsx`);
   };
 
-  console.log(evaluaciones)
+  // console.log(evaluaciones)
 
   return (
     <div className="p-6">
@@ -151,6 +152,13 @@ const HistorialEvaluaciones = () => {
             placeholder="Match máximo"
             value={filtros.max_match}
             onChange={(e) => setFiltros({ ...filtros, max_match: e.target.value })}
+            className="border p-2 rounded"
+          />
+          <input
+            type="text"
+            placeholder="Código de proceso"
+            value={filtros.proceso}
+            onChange={(e) => setFiltros({ ...filtros, proceso: e.target.value })}
             className="border p-2 rounded"
           />
       </div>

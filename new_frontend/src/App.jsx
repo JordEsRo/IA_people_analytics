@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import PrivateRoute from "./components/PrivateRoute";
@@ -17,15 +17,20 @@ import DetalleProcesoCarga from "./pages/DetalleProcesoCarga";
 import ListadoPostulantes from "./pages/ListadoPostulantes";
 import HistorialPostulante from "./pages/HistorialPostulante";
 import HistorialEvaluacionesProcesos from "./pages/HistorialEvaluacionesProcesos";
+import ApplyPage from "./pages/ApplyPage"
+import Areas from "./pages/Areas";
 
 function App() {
+  const location = useLocation();
+  const hideNavbar = location.pathname.startsWith("/apply");
   return (
-    <AuthProvider>
-      <Navbar />
+    <div>
+      {!hideNavbar && <Navbar />}
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/areas" element={<Areas />} />
         <Route path="/puestos" element={<Puestos />} />
         {/* <Route path="/evaluar" element={<EvaluarCV />} />
         <Route path="/evaluar-cvs" element={<SubidaMasiva />} /> */}
@@ -53,8 +58,10 @@ function App() {
             </PrivateRoute>
           }
         />
+        {/* URL ejemplo: http://localhost:5173/apply/0002-20250820-00045/7gxuCsUUO3QS1APb */}
+          <Route path="/apply/:processCode/:formToken" element={<ApplyPage />} />
       </Routes>
-    </AuthProvider>
+    </div>
   );
 }
 

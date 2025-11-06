@@ -2,20 +2,30 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { obtenerProcesos, activarProcesoCarga, desactivarProcesoCarga } from "../services/procesosService"; //, cambiarEstadoProceso
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const ListadoProcesosCarga = () => {
   const { token } = useAuth();
+  const navigate = useNavigate();
+
   const [procesos, setProcesos] = useState([]);
   const [filtros, setFiltros] = useState({});
   const [procesando, setProcesando] = useState(false);
+
+  const [mostrarActivos, setMostrarActivos] = useState(true);
+  const [mostrarInactivos, setMostrarInactivos] = useState(false);
 
   useEffect(() => {
     fetchProcesos();
   }, [filtros]);
 
   const fetchProcesos = async () => {
-    const data = await obtenerProcesos(token, filtros);
-    setProcesos(data);
+    try {
+      const data = await obtenerProcesos(token, filtros);
+      setProcesos(data);
+    } catch (error) {
+      console.error("Error al obtener procesos:", error);
+    }
   };
 
   const desactivar = async (id) => {
@@ -40,6 +50,10 @@ const ListadoProcesosCarga = () => {
   }
   };
 
+  const procesosFiltrados = procesos.filter(p =>
+    (mostrarActivos && p.state === true) ||
+    (mostrarInactivos && p.state === false)
+  );
 
  return (
     <div className="p-6">
@@ -60,12 +74,36 @@ const ListadoProcesosCarga = () => {
         />
       </div>
 
+      
+     <div className="flex gap-4 mb-4">
+        <label>
+          <input
+            type="checkbox"
+            checked={mostrarActivos}
+            onChange={() => setMostrarActivos(!mostrarActivos)}
+          />
+          <span className="ml-1">Activos</span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={mostrarInactivos}
+            onChange={() => setMostrarInactivos(!mostrarInactivos)}
+          />
+          <span className="ml-1">Inactivos</span>
+        </label>
+      </div>
+
+      {procesosFiltrados.length === 0 ? (
+        <p>No hay procesos que coincidan con los filtros.</p>
+      ) : (
+      
       <table className="w-full border">
         <thead>
           <tr className="bg-gray-100">
             <th className="p-2 border">Código</th>
             <th className="p-2 border">Área</th>
-            {procesos.some(p => p.autor) && <th className="p-2 border">Autor</th>}
+            {procesosFiltrados .some(p => p.autor) && <th className="p-2 border">Autor</th>}
             {/* <th className="p-2 border">Autor</th> */}
             <th className="p-2 border">Estado</th>
             <th className="p-2 border">Fecha de Creación</th>
@@ -75,7 +113,7 @@ const ListadoProcesosCarga = () => {
         <tbody>
 
 
-          {procesos.map((p) => (
+          {procesosFiltrados .map((p) => (
             <tr key={p.id} className="border p-4 rounded shadow mb-3">
               {/* <td className="p-2"><p><strong>Código:</strong> {p.code}</p></td> */}
               <td className="p-2">
@@ -86,7 +124,18 @@ const ListadoProcesosCarga = () => {
               <td className="p-2"><p><strong>Área:</strong> {p.area}</p></td>
               {p.autor && <td className="p-2"><p><strong>Autor:</strong> {p.autor}</p></td>}
               {/* <td className="p-2"><p><strong>Autor:</strong>{p.autor}</p></td> */}
-              <td className="p-2"><p><strong>Estado:</strong> {p.state ? "Activo" : "Inactivo"}</p></td>
+              <td className="p-2">
+                <p>
+                  <strong>Estado:</strong>{" "}
+                  {p.end_process ? (
+                    <span className="text-red-600 font-semibold">Finalizado</span>
+                  ) : p.state ? (
+                    "Activo"
+                  ) : (
+                    "Inactivo"
+                  )}
+                </p>
+              </td>
               <td className="p-2">{new Date(p.create_date).toLocaleDateString()}</td>
               <td className="mt-2 flex gap-2">
                 <a
@@ -132,6 +181,7 @@ const ListadoProcesosCarga = () => {
 
         </tbody>
       </table>
+      )}
     </div>
   );
 };

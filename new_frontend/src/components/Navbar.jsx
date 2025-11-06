@@ -17,6 +17,7 @@ const Navbar = () => {
         <nav className="bg-gray-800 text-white p-4 flex justify-between items-center">
         <div className="flex gap-4">
             <Link to="/dashboard" className="hover:underline">Inicio</Link>
+            <Link to="/areas" className="hover:underline">Áreas</Link>
             <Link to="/puestos" className="hover:underline">Puestos</Link>
             {/* <Link to="/evaluar" className="hover:underline">Evaluar CV</Link>
             <Link to="/evaluar-cvs" className="hover:underline">Evaluar CV's</Link> */}

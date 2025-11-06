@@ -10,14 +10,18 @@ export async function obtenerProcesos(token, filtros = {}) {
 }
 
 export const crearProcesoCarga = async (token, data) => {
-  const formData = new FormData();
-  formData.append("job_id", data.job_id);
-  formData.append("reque", data.reque);
-  formData.append("area", data.area);
-
+  // const formData = new FormData();
+  // formData.append("job_id", data.job_id);
+  // formData.append("reque", data.reque);
+  // formData.append("area", data.area);
   try {
-      const res = await API.post(`/crear-proceso-carga/`, formData, {
-      headers: {
+
+      const res = await API.post(`/procesos/crear-proceso-carga/`, { //, formData
+        job_id: data.job_id,
+        reque: data.reque,
+        functions: data.funcs,
+      },{
+        headers: {
           Authorization: `Bearer ${token}`,
       },
       });
@@ -56,4 +60,17 @@ export async function procesarCVsProceso(id, token) {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;
+}
+
+export async function finalizarProcesoCarga(id, token) {
+  const res = await API.post(`/procesos/${id}/finalizar`, null, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+}
+
+export async function reactivarProceso(id, token) {
+  return await API.post(`/procesos/${id}/reactivar`, null, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 }

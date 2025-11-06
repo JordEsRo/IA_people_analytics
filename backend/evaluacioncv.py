@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, Query
 from sqlmodel import Session, select, or_, and_, desc, join
-from models import EvaluacionCV, JobPosition, ChargeProcess, User
-from cargabd import engine
+from models import EvaluacionCV, JobPosition, ChargeProcess, User , MatchUpdateSchema
+from cargabd import engine, get_session
 from auth import get_current_user
 import httpx, json
 from typing import List, Optional
@@ -32,9 +32,8 @@ async def eval_cv(
     #JSON puesto
     job_json = {
         "name": job.name,
-        "year_experience": job.years_experience,
-        "skills_rq": job.skills_rq.split(",") if job.skills_rq else [],
-        "knowldg": job.knowldg.split(",") if job.knowldg else []
+        # "requirements": job.requirements,
+        "area": job.area
     }
     
     files = {'file': (archivo.filename, file_bytes, archivo.content_type),}
@@ -103,9 +102,8 @@ async def evaluar_cvs(
         
     job_json = {
         "name": job.name,
-        "year_experience": job.years_experience,
-        "skills_rq": job.skills_rq.split(",") if job.skills_rq else [],
-        "knowldg": job.knowldg.split(",") if job.knowldg else []
+        # "requirements": job.requirements,
+        "area": job.area
     }
     
     async with httpx.AsyncClient() as client:
@@ -180,13 +178,14 @@ def historial_general_evaluaciones(
     fecha_hasta: Optional[str] = Query(None),
     min_match: Optional[int] = Query(None),
     max_match: Optional[int] = Query(None),
+    proceso: Optional[str] = Query(None),
     offset: int = 0,
     limit: int = 20,
     user: User = Depends(get_current_user)
 ):
     with Session(engine) as session:
         try:
-            print("Query params:", search, puesto_id, fecha_desde, fecha_hasta, min_match, max_match)
+            #print("Query params:", search, puesto_id, fecha_desde, fecha_hasta, min_match, max_match)
             
             query = (
                 select(EvaluacionCV, ChargeProcess, JobPosition)
@@ -222,9 +221,12 @@ def historial_general_evaluaciones(
 
             # Filtro por match
             if min_match is not None:
-                query = query.where(EvaluacionCV.match.cast(int) >= min_match) # type: ignore
+                query = query.where(EvaluacionCV.match >= min_match) # type: ignore
             if max_match is not None:
-                query = query.where(EvaluacionCV.match.cast(int) <= max_match) # type: ignore
+                query = query.where(EvaluacionCV.match <= max_match) # type: ignore
+                
+            if proceso:
+                query = query.where(ChargeProcess.code.ilike(f"%{proceso}%"))  # type: ignore
 
             query = query.order_by(desc(EvaluacionCV.date_create))
             total = len(session.exec(query).all())
@@ -249,10 +251,29 @@ def historial_general_evaluaciones(
             print("ERROR:", e)
             raise HTTPException(status_code=500, detail=str(e))
         
-# #Listar evaluaciones
-# @routercv.get("/evaluaciones/{puesto_id}", response_model=list[EvaluacionCV])
-# def list_eval(puesto_id: int):
-#     with Session(engine) as session:
-#         query = select(EvaluacionCV).where(EvaluacionCV.puesto_id == puesto_id)
-#         results = session.exec(query).all()
-#         return results
+        
+#Actualizar matchs
+@routercv.patch("/evaluaciones/actualizar-match")
+def actualizar_match(data: MatchUpdateSchema, session: Session = Depends(get_session)):
+    
+    #print(data)
+    
+    evaluacion = session.exec(
+        select(EvaluacionCV).where(
+            EvaluacionCV.dni_postulante == data.dni,
+            EvaluacionCV.charge_process_id == data.process_id
+        )
+    ).first()
+
+    #print("Evaluación encontrada:", evaluacion)
+
+    if not evaluacion:
+        raise HTTPException(status_code=404, detail="Evaluación no encontrada para ese DNI y proceso")
+
+    evaluacion.match = data.match
+    session.add(evaluacion)
+    session.commit()
+
+    return {"detail": f"Match actualizado a {data.match} para DNI {data.dni} en proceso {data.process_id}"}
+
+        

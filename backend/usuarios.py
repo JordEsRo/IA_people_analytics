@@ -5,10 +5,10 @@ from auth import hash_password, verify_password, create_access_token, require_ad
 from cargabd import engine, get_session
 from typing import List
 
-routeruser = APIRouter()
+routeruser = APIRouter(prefix="/usuarios", tags=["Usuarios"])
 
 #Cambiar rol
-@routeruser.put("/usuarios/{user_id}/rol", dependencies=[Depends(require_admin)])
+@routeruser.put("/{user_id}/rol", dependencies=[Depends(require_admin)])
 def change_role_user(
     user_id: int,
     new_role: str = Body(..., embed=True),
@@ -27,7 +27,7 @@ def change_role_user(
         return {"ok": True, "message": f"Rol cambiado a {new_role}"}
 
 #Editar usuario
-@routeruser.put("/usuarios/{user_id}/editar", dependencies=[Depends(require_admin)])
+@routeruser.put("/{user_id}/editar", dependencies=[Depends(require_admin)])
 def update_user(
     user_id: int,
     new_username: str = Body(..., embed=True),
@@ -57,7 +57,7 @@ def update_user(
     return {"ok": True, "message": f"Usuario actualizado a {new_username}"}
 
 #Activar usuario
-@routeruser.put("/usuarios/{user_id}/activar", dependencies=[Depends(require_admin)])
+@routeruser.put("/{user_id}/activar", dependencies=[Depends(require_admin)])
 def enable_user(user_id: int):
     with Session(engine) as session:
         user = session.get(User, user_id)
@@ -70,7 +70,7 @@ def enable_user(user_id: int):
         return {"ok": True, "message": f"Usuario {user.username} reactivado"}
 
 #Desactivar usuario
-@routeruser.put("/usuarios/{user_id}/desactivar", dependencies=[Depends(require_admin)])
+@routeruser.put("/{user_id}/desactivar", dependencies=[Depends(require_admin)])
 def disable_user(user_id: int):
     with Session(engine) as session:
         user = session.get(User, user_id)
@@ -86,7 +86,7 @@ def disable_user(user_id: int):
         return {"ok": True, "message": f"Usuario {user.username} desactivado"}
 
 #Cambio de contraseña
-@routeruser.put("/usuarios/{user_id}/password", dependencies=[Depends(require_admin)])
+@routeruser.put("/{user_id}/password", dependencies=[Depends(require_admin)])
 def cambiar_password(
     user_id: int,
     datos: PasswordChange,
@@ -118,7 +118,7 @@ def cambiar_password(
         return {"ok": True, "message": f"Contraseña actualizada para {user.username}"}
 
 #Auditoria
-@routeruser.get("/usuarios/{id}/auditoria", response_model=dict)
+@routeruser.get("/{id}/auditoria", response_model=dict)
 def ver_auditoria(id: int, db: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="No autorizado")
@@ -130,3 +130,9 @@ def ver_auditoria(id: int, db: Session = Depends(get_session), current_user: Use
         "updates": [u.to_dict() for u in updates],
         "password_changes": [p.to_dict() for p in passwords],
     }
+
+#Listar usuarios
+@routeruser.get("/", response_model=list[User], dependencies=[Depends(require_admin)])
+def list_users():
+    with Session(engine) as session:
+        return session.exec(select(User)).all()

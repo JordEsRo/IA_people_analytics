@@ -53,6 +53,36 @@ const ModalDetalleEvaluacion = ({ evaluacion, onClose }) => {
             </>
           )}
 
+
+          {evaluacion.functions && (
+            <>
+              <p className="font-semibold mb-1">Funciones:</p>
+              <table className="w-full text-sm text-left border border-gray-300 mb-4">
+                <thead className="bg-gray-100 text-gray-700">
+                  <tr>
+                    {evaluacion.functions.split("\n")[0].split("\t").map((col, idx) => (
+                      <th key={idx} className="border px-2 py-1">{col}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {evaluacion.functions
+                    .split("\n")
+                    .slice(1)
+                    .filter(row => row.trim() !== "")
+                    .map((row, rowIndex) => (
+                      <tr key={rowIndex} className="border-b">
+                        {row.split("\t").map((cell, cellIndex) => (
+                          <td key={cellIndex} className="border px-2 py-1">{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </>
+          )}
+
+
           {evaluacion.skills && (
             <>
               <p className="font-semibold">Skills detectados:</p>

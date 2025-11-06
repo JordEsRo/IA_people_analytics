@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Form, Query ,UploadFile , File
-from sqlmodel import Session, select, desc
+from sqlmodel import Session, select, desc, or_, func
 from models import User, Postulant, EvaluacionCV
 from cargabd import engine
 from auth import get_current_user
@@ -13,7 +13,7 @@ load_dotenv()
 routerpostulant = APIRouter()
 
 #Listar Postulantes
-@routerpostulant.get("/postulantes/", response_model=List[Postulant])
+@routerpostulant.get("/postulantes/")
 def listar_postulantes(
     offset: int = 0,
     limit: int = 20,
@@ -30,8 +30,12 @@ def listar_postulantes(
                     Postulant.email.ilike(f"%{search}%"),  # type: ignore
                 )
             )
+        total = session.exec(select(func.count()).select_from(query.subquery())).one()
         results = session.exec(query.offset(offset).limit(limit)).all()
-        return results
+        return {
+            "total": total,
+            "items": results,
+        }
 
 #Historial
 @routerpostulant.get("/postulantes/{dni}/historial", response_model=List[EvaluacionCV])
