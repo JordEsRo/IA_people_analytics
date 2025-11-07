@@ -21,6 +21,7 @@ origins = [
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://localhost",# tu frontend en desarrollo
+    "http://34.28.72.229:5173",  # 👈 agrega la IP pública del VPS
     #"http://localhost:8000",
     #"ws://localhost:8000"
 ]
