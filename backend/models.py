@@ -1,6 +1,6 @@
-from sqlmodel import SQLModel, Field, Relationship, Column
+from sqlmodel import ForeignKey, SQLModel, Field, Relationship, Column
 from typing import Optional, List, Dict, Any
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
 from sqlalchemy import DateTime
@@ -125,7 +125,7 @@ class ChargeProcess(SQLModel, table=True):
     reque: str
     functions: str
     # area: str #Se debe eliminar antes de generar la tabla Area
-    user_id: int = Field(foreign_key="user.id")
+    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id"), nullable=False)
     drive_folder_id: Optional[str] = None
     drive_folder_url: Optional[str] = None
     create_date: datetime = Field(default_factory=peru_time)
