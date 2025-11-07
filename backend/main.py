@@ -21,8 +21,8 @@ origins = [
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://localhost",# tu frontend en desarrollo
-    "http://34.28.72.229",
-    "http://34.28.72.229:5173",
+    "http://frontend:5173",
+    "http://backend:8000", 
     #"http://localhost:8000",
     #"ws://localhost:8000"
 ]
